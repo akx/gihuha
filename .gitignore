@@ -1,3 +1,4 @@
+*.pickle
 *.py[cod]
 .env
-*.pickle
+/storage

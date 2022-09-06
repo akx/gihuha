@@ -1,11 +1,26 @@
 from collections import defaultdict
 
-from github.Issue import Issue
+import click
+from github import Issue
 
-from gihuha.models import GData
+from gihuha import settings
+from gihuha.cli.main import main
+from gihuha.models.project_and_repo_data import ProjectAndRepoData
+from gihuha.storage import storage
 
 
-def print_projectless_issues(data: GData):
+@main.command()
+@click.argument("org_name")
+def print_projectless_issues(org_name):
+    key = f"project-and-repo-data:{org_name}"
+    data = storage.get(key)
+    if data is None:
+        data: ProjectAndRepoData = ProjectAndRepoData.retrieve(
+            github_api_token=settings.GITHUB_API_TOKEN,
+            org_name=org_name,
+        )
+        storage[key] = data
+
     issue_url_to_card = defaultdict(list)
     for cards in data.project_column_cards.values():
         for card in cards:

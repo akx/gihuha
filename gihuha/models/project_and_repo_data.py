@@ -1,6 +1,5 @@
-import pickle
-from pathlib import Path
-from typing import Dict, Tuple, List
+import dataclasses
+from typing import Dict, List, Tuple
 
 import tqdm
 from github import Github
@@ -11,23 +10,23 @@ from github.ProjectCard import ProjectCard
 from github.ProjectColumn import ProjectColumn
 from github.Repository import Repository
 
-from gihuha.models import GData
 
+@dataclasses.dataclass(frozen=True)
+class ProjectAndRepoData:
+    organization: Organization
+    project_column_cards: Dict[Tuple[Project, ProjectColumn], List[ProjectCard]]
+    repo_issues: Dict[Repository, List[Issue]]
 
-def retrieve_data(*, github_api_token: str, base_path: str, org_name: str):
-    base_path = Path(base_path)
-    base_path.mkdir(parents=True, exist_ok=True)
-    g = Github(github_api_token, per_page=100)
-    org: Organization
-    org = g.get_organization(org_name)
+    @classmethod
+    def retrieve(cls, *, github_api_token: str, org_name: str) -> "ProjectAndRepoData":
+        g = Github(github_api_token, per_page=100)
+        org: Organization = g.get_organization(org_name)
 
-    project_column_cards = get_project_column_cards(org)
-    repo_issues = get_repo_issues(org)
-
-    gd = GData(project_column_cards=project_column_cards, repo_issues=repo_issues)
-
-    with open(base_path / "data.pickle", "wb") as outf:
-        pickle.dump(gd, file=outf, protocol=pickle.HIGHEST_PROTOCOL)
+        return ProjectAndRepoData(
+            organization=org,
+            project_column_cards=get_project_column_cards(org),
+            repo_issues=get_repo_issues(org),
+        )
 
 
 def get_project_column_cards(

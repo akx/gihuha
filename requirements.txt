@@ -1,2 +1,5 @@
 PyGithub~=1.55
+click~=8.0.1
+diskcache~=5.4.0
+envparse~=0.2.0
 tqdm~=4.62.0
